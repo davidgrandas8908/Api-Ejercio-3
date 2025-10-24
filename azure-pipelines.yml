@@ -14,8 +14,9 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  dockerHubUsername: 'ricardo0889'
-  # dockerHubPassword se configura como variable secreta en Azure DevOps
+- name: dockerHubUsername
+  value: 'ricardo0889'
+- group: GitHub-Secrets
 
 stages:
   - stage: BuildAndPush
