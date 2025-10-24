@@ -1,0 +1,41 @@
+services:
+  api1:
+    build:
+      context: ./Api1
+      dockerfile: Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    networks:
+      - api-network
+
+  api2:
+    build:
+      context: ./Api2
+      dockerfile: Dockerfile
+    ports:
+      - "5002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    networks:
+      - api-network
+
+  api3:
+    build:
+      context: ./Api3
+      dockerfile: Dockerfile
+    ports:
+      - "5003:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    networks:
+      - api-network
+
+networks:
+  api-network:
+    driver: bridge
+
