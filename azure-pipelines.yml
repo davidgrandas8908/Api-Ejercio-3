@@ -29,7 +29,7 @@ stages:
             inputs:
               command: 'build'
               dockerfile: 'Api1/Dockerfile'
-              buildContext: 'Api1'
+              buildContext: '$(Build.SourcesDirectory)/Api1'
               repository: '$(dockerHubUsername)/api1'
               tags: |
                 latest
@@ -53,7 +53,7 @@ stages:
             inputs:
               command: 'build'
               dockerfile: 'Api2/Dockerfile'
-              buildContext: 'Api2'
+              buildContext: '$(Build.SourcesDirectory)/Api2'
               repository: '$(dockerHubUsername)/api2'
               tags: |
                 latest
@@ -77,7 +77,7 @@ stages:
             inputs:
               command: 'build'
               dockerfile: 'Api3/Dockerfile'
-              buildContext: 'Api3'
+              buildContext: '$(Build.SourcesDirectory)/Api3'
               repository: '$(dockerHubUsername)/api3'
               tags: |
                 latest
