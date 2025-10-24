@@ -1,0 +1,62 @@
+trigger:
+- main  # o master, según la rama que use el repo
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  solution: '**/*.sln'
+  project: '**/*.csproj'
+  publishDir: '$(Build.ArtifactStagingDirectory)/publish'
+
+steps:
+# 1) Clonar el repositorio
+- checkout: self
+  displayName: 'Clonar el repositorio'
+
+# 2️) Instalar .NET SDK
+- task: UseDotNet@2
+  displayName: 'Instalar .NET 8 SDK'
+  inputs:
+    packageType: 'sdk'
+    version: '8.0.x'
+
+# 3️) Restaurar dependencias
+- task: DotNetCoreCLI@2
+  displayName: 'Restaurar dependencias'
+  inputs:
+    command: 'restore'
+    projects: '$(solution)'
+
+# 4️) Compilar proyecto
+- task: DotNetCoreCLI@2
+  displayName: 'Compilar el proyecto'
+  inputs:
+    command: 'build'
+    projects: '$(solution)'
+    arguments: '--configuration $(buildConfiguration)'
+
+# 5️) Ejecutar pruebas
+- task: DotNetCoreCLI@2
+  displayName: 'Ejecutar pruebas'
+  inputs:
+    command: 'test'
+    projects: '**/*Tests/*.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+  continueOnError: true
+
+# 6️) Publicar API compilada
+- task: DotNetCoreCLI@2
+  displayName: 'Publicar API compilada'
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+    arguments: '--configuration $(buildConfiguration) --output $(publishDir)'
+
+# 7) Guardar artefactos del build
+- task: PublishBuildArtifacts@1
+  displayName: 'Guardar artefactos del build'
+  inputs:
+    pathToPublish: '$(publishDir)'
+    artifactName: 'drop'
