@@ -120,4 +120,3 @@ stages:
               git push https://$(GITHUB_PAT)@github.com/davidgrandas8908/-Helm-charts.git
             displayName: 'Update Helm Chart with new image tags'
             condition: succeeded()
-
