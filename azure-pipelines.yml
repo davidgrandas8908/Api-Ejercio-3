@@ -14,9 +14,8 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-- name: dockerHubUsername
-  value: 'ricardo0889'
-- group: GitHub-Secrets
+  dockerHubUsername: 'ricardo0889'
+  # dockerHubPassword se configura como variable secreta en Azure DevOps
 
 stages:
   - stage: BuildAndPush
@@ -104,9 +103,9 @@ stages:
           - checkout: self
             persistCredentials: true
           
-          - script: |
-              git config user.email "azure-pipeline@devops.com"
-              git config user.name "Azure Pipeline"
+          - bash: |
+              git config --global user.email "azure-pipeline@devops.com"
+              git config --global user.name "Azure Pipeline"
               
               # Clonar el repositorio de Helm Charts
               git clone https://github.com/davidgrandas8908/-Helm-charts.git helm-repo
@@ -121,3 +120,5 @@ stages:
               git push https://$(GITHUB_PAT)@github.com/davidgrandas8908/-Helm-charts.git
             displayName: 'Update Helm Chart with new image tags'
             condition: succeeded()
+            env:
+              GITHUB_PAT: $(GITHUB_PAT)
