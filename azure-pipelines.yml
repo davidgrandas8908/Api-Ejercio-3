@@ -1,0 +1,123 @@
+trigger:
+  branches:
+    include:
+      - master
+      - main
+  paths:
+    include:
+      - Api1/**
+      - Api2/**
+      - Api3/**
+      - azure-pipelines.yml
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  dockerHubUsername: 'ricardo0889'
+  # dockerHubPassword se configura como variable secreta en Azure DevOps
+
+stages:
+  - stage: BuildAndPush
+    displayName: 'Build and Push Docker Images'
+    jobs:
+      - job: BuildApi1
+        displayName: 'Build and Push API 1'
+        steps:
+          - task: Docker@2
+            displayName: 'Build API 1 Image'
+            inputs:
+              command: 'build'
+              dockerfile: 'Api1/Dockerfile'
+              buildContext: 'Api1'
+              repository: '$(dockerHubUsername)/api1'
+              tags: |
+                latest
+                $(Build.BuildId)
+          
+          - task: Docker@2
+            displayName: 'Push API 1 to Docker Hub'
+            inputs:
+              command: 'push'
+              repository: '$(dockerHubUsername)/api1'
+              containerRegistry: 'DockerHubConnection'
+              tags: |
+                latest
+                $(Build.BuildId)
+
+      - job: BuildApi2
+        displayName: 'Build and Push API 2'
+        steps:
+          - task: Docker@2
+            displayName: 'Build API 2 Image'
+            inputs:
+              command: 'build'
+              dockerfile: 'Api2/Dockerfile'
+              buildContext: 'Api2'
+              repository: '$(dockerHubUsername)/api2'
+              tags: |
+                latest
+                $(Build.BuildId)
+          
+          - task: Docker@2
+            displayName: 'Push API 2 to Docker Hub'
+            inputs:
+              command: 'push'
+              repository: '$(dockerHubUsername)/api2'
+              containerRegistry: 'DockerHubConnection'
+              tags: |
+                latest
+                $(Build.BuildId)
+
+      - job: BuildApi3
+        displayName: 'Build and Push API 3'
+        steps:
+          - task: Docker@2
+            displayName: 'Build API 3 Image'
+            inputs:
+              command: 'build'
+              dockerfile: 'Api3/Dockerfile'
+              buildContext: 'Api3'
+              repository: '$(dockerHubUsername)/api3'
+              tags: |
+                latest
+                $(Build.BuildId)
+          
+          - task: Docker@2
+            displayName: 'Push API 3 to Docker Hub'
+            inputs:
+              command: 'push'
+              repository: '$(dockerHubUsername)/api3'
+              containerRegistry: 'DockerHubConnection'
+              tags: |
+                latest
+                $(Build.BuildId)
+
+      - job: UpdateHelmValues
+        displayName: 'Update Helm Chart Values'
+        dependsOn:
+          - BuildApi1
+          - BuildApi2
+          - BuildApi3
+        steps:
+          - checkout: self
+            persistCredentials: true
+          
+          - script: |
+              git config user.email "azure-pipeline@devops.com"
+              git config user.name "Azure Pipeline"
+              
+              # Clonar el repositorio de Helm Charts
+              git clone https://github.com/davidgrandas8908/-Helm-charts.git helm-repo
+              cd helm-repo
+              
+              # Actualizar el archivo values.yaml con el nuevo tag
+              sed -i "s/tag: \".*\"/tag: \"$(Build.BuildId)\"/g" values.yaml
+              
+              # Commit y push de los cambios
+              git add values.yaml
+              git commit -m "Update image tags to $(Build.BuildId)" || echo "No changes to commit"
+              git push https://$(GITHUB_PAT)@github.com/davidgrandas8908/-Helm-charts.git
+            displayName: 'Update Helm Chart with new image tags'
+            condition: succeeded()
+
